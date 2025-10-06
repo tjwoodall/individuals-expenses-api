@@ -49,8 +49,7 @@ post:
           examples:
             example-response:
               description: Example Response
-              value:
-                $ref: './examples/ignore_employment_expenses/response.json'
+              externalValue: './examples/ignore_employment_expenses/response.json'
 
     "400":
       description: Bad request
