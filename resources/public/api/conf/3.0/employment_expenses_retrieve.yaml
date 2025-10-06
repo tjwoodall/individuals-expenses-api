@@ -53,12 +53,10 @@ responses:
         examples:
           example-user-response:
             description: Example user response
-            value:
-              $ref: './examples/retrieve_employment_expenses/user.json'
+            externalValue: './examples/retrieve_employment_expenses/user.json'
           example-hmrcHeld-response:
             description: Example hmrcHeld response
-            value:
-              $ref: './examples/retrieve_employment_expenses/hmrc_held.json'
+            externalValue: './examples/retrieve_employment_expenses/hmrc_held.json'
 
   "400":
     description: Bad request
