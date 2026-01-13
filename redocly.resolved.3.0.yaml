@@ -1,0 +1,2081 @@
+openapi: 3.0.3
+info:
+  version: '3.0'
+  title: Individuals Expenses (MTD)
+  description: |
+    The following groups of endpoints are stateful in the Sandbox:
+    * [Employment Expenses](#tag/Employment-Expenses)
+    * [Other Expenses](#tag/Other-Expenses)
+
+    # Send fraud prevention data
+    HMRC monitors transactions to help protect your customers' confidential data from criminals and fraudsters. 
+
+    <div class="govuk-warning-text warning-icon-fix">
+      <span class="govuk-warning-text__icon warning-icon-ui-fix" aria-hidden="true">!</span>
+      <strong class="govuk-warning-text__text">
+        <span class="govuk-warning-text__assistive">Warning</span>
+        You are required by law to submit header data for this API. This includes all associated APIs and endpoints.
+      </strong>
+    </div>
+
+    [Check the data you need to send](/guides/fraud-prevention/). You can also use the [Test API](/api-documentation/docs/api/service/txm-fph-validator-api/1.0) during initial development and as part of your quality assurance checks.
+
+    # Mapping APIs to Self Assessment tax return forms
+    Some parameters in this API map to box numbers in one or more Self Assessment tax return forms. To learn more and to download this mapping information as a CSV file, go to [income-tax-mtd-changelog/mapping](https://github.com/hmrc/income-tax-mtd-changelog?tab=readme-ov-file#mapping-apis-to-self-assessment-tax-return-forms) on GitHub.
+
+    # Changelog
+    You can find the changelog in the [income-tax-mtd-changelog](https://github.com/hmrc/income-tax-mtd-changelog/#readme) on GitHub.
+
+    # Support
+
+    * Direct reports of bugs or errors in Production or Sandbox code, or queries about HMRC business functionality (such as how a specific field is used by HMRC or why it is needed) to the the [Software Development Support Team (SDST)](https://developer.service.hmrc.gov.uk/developer/support).
+    * Send queries or feedback related to the design of the APIs (including recommended changes) using the [income-tax-mtd-changelog](https://github.com/hmrc/income-tax-mtd-changelog/issues) GitHub page.
+    * <a href="/contact/report-technical-problem?newTab=true&service=api-documentation-frontend" target="_blank">Is this page not working properly? (opens in new tab)</a>
+servers:
+  - url: https://test-api.service.hmrc.gov.uk
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk
+    description: Production
+tags:
+  - name: Employment Expenses
+    description: Resources relating to an individual's employment expenses
+  - name: Other Expenses
+    description: Resources relating to an individual's other expenses
+paths:
+  /individuals/expenses/employments/{nino}/{taxYear}:
+    put:
+      summary: Create and Amend Employment Expenses
+      security:
+        - User-Restricted:
+            - write:self-assessment
+      description: |
+        This endpoint enables you to add or update existing employment expenses. This endpoint can only be used after the tax 
+        year has ended. A National Insurance number and tax year are required.
+
+        Amending an expense will override the expense and remove the "dateIgnored" flag from HMRC-provided expenses.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                                                                                                        |
+        |-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates success response.                                                                                                                                                     |
+        | TAX_YEAR_NOT_ENDED                      | Simulates the scenario where the submission is for a tax year that has not ended.                                                                                               | 
+        | NOT_FOUND                               | Scenario to simulate not found error.                                                                                                                                           |
+        | RULE_INVALID_SUBMISSION_PENSION_SCHEME  | Simulates the scenario where customer with single employment source that has "occupational pension" indicator cannot submit employment expenses.                                |
+        | STATEFUL                                | Performs a stateful create or update.<br><br>At least one custom employment with ‘occupationalPension = false’ must be created for the tax year before you can submit expenses. |
+        | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window.                                                                                 |
+      tags:
+        - Employment Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: &ref_12
+            type: string
+            example: TC663795B
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: &ref_13
+            type: string
+            pattern: ^\d{4}-\d{2}$
+            example: 2022-23
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: &ref_14
+            type: string
+            enum:
+              - application/vnd.hmrc.3.0+json
+          required: true
+        - name: Content-Type
+          in: header
+          description: |
+            Specifies the format of the request body, which must be JSON.
+          schema: &ref_19
+            type: string
+            enum:
+              - application/json
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
+          schema: &ref_15
+            type: string
+            example: Bearer bb7fed3fe10dd235a2ccda3d50fb
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: &ref_16
+            type: string
+            example: '-'
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $schema: http://json-schema.org/draft-04/schema#
+              title: Amend Expenses
+              description: Allows the amendments of expenses
+              type: object
+              properties:
+                expenses:
+                  description: Object containing the employment expenses.
+                  type: object
+                  properties:
+                    businessTravelCosts:
+                      description: |-
+                        Expenses associated with business travel.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    jobExpenses:
+                      description: |-
+                        The actual expense of replacing or maintaining tools or special work clothes.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    flatRateJobExpenses:
+                      description: |-
+                        Fixed rate expenses applied for replacing or maintaining tools or special work clothes.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    professionalSubscriptions:
+                      description: |-
+                        Fees or subscriptions to professional bodies, required in order to undertake the employment.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    hotelAndMealExpenses:
+                      description: |-
+                        Subsistence costs incurred with work.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    otherAndCapitalAllowances:
+                      description: |-
+                        The expense from purchasing small items required for this employment.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    vehicleExpenses:
+                      description: |-
+                        Vehicle expenses for using own car, van or motorcycle for business mileage occurred during work.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                    mileageAllowanceRelief:
+                      description: |-
+                        The shortfall incurred when the employer pays less than the approved mileage rate.
+
+                        The value must be between 0 and 99999999999.99
+                      type: number
+                      example: '2000.99'
+                  additionalProperties: false
+              required:
+                - expenses
+              additionalProperties: false
+            examples:
+              example-1:
+                description: Default Example
+                value:
+                  expenses:
+                    businessTravelCosts: 1234.23
+                    jobExpenses: 1223.22
+                    flatRateJobExpenses: 1223.22
+                    professionalSubscriptions: 1223.22
+                    hotelAndMealExpenses: 1223.22
+                    otherAndCapitalAllowances: 1223.22
+                    vehicleExpenses: 1223.22
+                    mileageAllowanceRelief: 1223.22
+      responses:
+        '204':
+          description: Success(No Content)
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: &ref_0
+                type: string
+                example: c75f40a6-a3df-4429-a697-471eeec46435
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: &ref_1
+                type: string
+                example: Sun, 01 Jan 2023 23:59:59 GMT
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: &ref_2
+                type: string
+                example: Sun, 02 Jul 2023 23:59:59 GMT
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: &ref_3
+                type: string
+                example: https://developer.service.hmrc.gov.uk/api-documentation/docs/api/service/individual-expenses-api
+              required: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: &ref_4
+                  code:
+                    description: The error code
+                    type: string
+                  message:
+                    description: The error message
+                    type: string
+                required: &ref_5
+                  - code
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: &ref_6
+                    code: FORMAT_NINO
+                    message: The provided NINO is invalid
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: &ref_7
+                    code: FORMAT_TAX_YEAR
+                    message: The provided tax year is invalid
+                FORMAT_VALUE:
+                  description: One or more values have been added with the incorrect format.
+                  value: &ref_20
+                    code: FORMAT_VALUE
+                    message: The value must be between 0 and 99999999999.99
+                RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED:
+                  description: An empty or non-matching body was submitted.
+                  value: &ref_21
+                    code: RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED
+                    message: An empty or non-matching body was submitted
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: &ref_8
+                    code: RULE_TAX_YEAR_NOT_SUPPORTED
+                    message: The tax year specified does not lie within the supported range
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: &ref_9
+                    code: RULE_TAX_YEAR_RANGE_INVALID
+                    message: Tax year range invalid. A tax year range of one year is required
+                RULE_TAX_YEAR_NOT_ENDED:
+                  description: The submission has been made before the Tax year it relates to has ended.
+                  value: &ref_18
+                    code: RULE_TAX_YEAR_NOT_ENDED
+                    message: Tax year not ended
+                RULE_INVALID_SUBMISSION_PENSION_SCHEME:
+                  description: |
+                    Customer with single employment source that has "occupational pension" indicator cannot submit employment expenses.
+                  value:
+                    code: RULE_INVALID_SUBMISSION_PENSION_SCHEME
+                    message: Data item submitted is invalid for a customer with an occupational pension and no other employment source - for example, employment expenses or benefit in kind (apart from medical insurance) are not valid
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: &ref_10
+                    code: RULE_INCORRECT_GOV_TEST_SCENARIO
+                    message: The supplied Gov-Test-Scenario is not valid
+                RULE_OUTSIDE_AMENDMENT_WINDOW:
+                  description: |
+                    The request cannot be completed as you are outside the amendment window.
+                  value: &ref_17
+                    code: RULE_OUTSIDE_AMENDMENT_WINDOW
+                    message: You are outside the amendment window
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: &ref_11
+                    code: CLIENT_OR_AGENT_NOT_AUTHORISED
+                    message: The client and/or agent is not authorised
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: Employments could not be found for the supplied NINO.
+                  value:
+                    code: MATCHING_RESOURCE_NOT_FOUND
+                    message: Matching resource not found
+    get:
+      summary: Retrieve Employment Expenses
+      security:
+        - User-Restricted:
+            - read:self-assessment
+      parameters:
+        - $ref: ./common/queryParameters.yaml#/components/parameters/source
+      description: |
+        This endpoint enables you to retrieve existing employment expenses.
+        A National Insurance number and tax year must be provided.
+
+        ### Test data
+
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                                                                                              |
+        | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+        | N/A - DEFAULT <br> **?source=user**     | Requesting **user** source simulates success response with User provided financial details.                                                                           |
+        | N/A - DEFAULT <br> **?source=hmrcHeld** | Requesting **hmrcHeld** source simulates success response with HMRC held financial details.                                                                           |
+        | N/A - DEFAULT <br> **?source=latest**   | Requesting **latest** source simulates success response with Latest financial details submitted.                                                                      |
+        | NOT_FOUND                               | Simulates the scenario where no data is found.                                                                                                                        |
+        | DYNAMIC                                 | The following response values will change to correspond to the values submitted in the request: <br/> &bull; source <br/> &bull; submittedOn <br/> &bull; dateIgnored |
+           | STATEFUL                                                                                                                                                              | Performs a stateful retrieve. <p> Information and data held by HMRC is not available in the sandbox environment. Providing ‘source=hmrcHeld’ will result in the expected HTTP 404 (matching resource not found) error being returned. </p> | 
+      tags:
+        - Employment Expenses
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                $schema: http://json-schema.org/draft-04/schema#
+                title: Retrieve Employment Expenses
+                description: Allows the retrieval of employment expenses
+                type: object
+                properties:
+                  submittedOn:
+                    description: |-
+                      The date the expenses were submitted.
+
+                      Must conform to the format YYYY-MM-DDThh:mm:ss.SSS'Z'
+                    type: string
+                    example: '2020-07-13T20:37:27.000Z'
+                  totalExpenses:
+                    description: |-
+                      The sum of the expenses provided.
+
+                      The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                    type: number
+                    example: '2000.99'
+                  source:
+                    description: Specifies the source of data returned. "latest" combines the HMRC and user-provided overridden values.
+                    type: string
+                    enum:
+                      - hmrcHeld
+                      - user
+                      - latest
+                  dateIgnored:
+                    description: |-
+                      The date the expenses were flagged not to be used in the tax calculation.
+
+                      Must conform to the format YYYY-MM-DDThh:mm:ss.SSS'Z'
+                    type: string
+                    example: '2020-07-13T20:37:27.000Z'
+                  expenses:
+                    description: Object containing the employment expenses.
+                    type: object
+                    properties:
+                      businessTravelCosts:
+                        description: |-
+                          Expenses associated with business travel where own or company vehicle was not used.
+
+                          The value must be between 0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      jobExpenses:
+                        description: |-
+                          The actual expense of replacing or maintaining tools or special work clothes.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      flatRateJobExpenses:
+                        description: |-
+                          Fixed rate expenses applied for replacing or maintaining tools or special work clothes.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      professionalSubscriptions:
+                        description: |-
+                          Fees or subscriptions to professional bodies, required in order to undertake the employment.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      hotelAndMealExpenses:
+                        description: |-
+                          Subsistence costs incurred with work.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      otherAndCapitalAllowances:
+                        description: |-
+                          The expense from purchasing small items required for this employment.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      vehicleExpenses:
+                        description: |-
+                          Fuel and other costs when using a company vehicle.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                      mileageAllowanceRelief:
+                        description: |-
+                          The shortfall incurred when the employer pays less than the approved mileage rate.
+
+                          The value must be between  0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                    additionalProperties: false
+                additionalProperties: false
+              examples:
+                example-user-response:
+                  description: Example user response
+                  value:
+                    submittedOn: '2020-12-12T12:12:12Z'
+                    totalExpenses: 123.12
+                    source: user
+                    dateIgnored: '2020-12-11T12:12:12Z'
+                    expenses:
+                      businessTravelCosts: 123.12
+                      jobExpenses: 123.12
+                      flatRateJobExpenses: 123.12
+                      professionalSubscriptions: 123.12
+                      hotelAndMealExpenses: 123.12
+                      otherAndCapitalAllowances: 123.12
+                      vehicleExpenses: 123.12
+                      mileageAllowanceRelief: 123.12
+                example-hmrcHeld-response:
+                  description: Example hmrcHeld response
+                  value:
+                    submittedOn: '2020-12-12T12:12:12Z'
+                    totalExpenses: 123.12
+                    source: hmrcHeld
+                    dateIgnored: '2020-12-11T12:12:12Z'
+                    expenses:
+                      businessTravelCosts: 123.12
+                      jobExpenses: 123.12
+                      flatRateJobExpenses: 123.12
+                      professionalSubscriptions: 123.12
+                      hotelAndMealExpenses: 123.12
+                      otherAndCapitalAllowances: 123.12
+                      vehicleExpenses: 123.12
+                      mileageAllowanceRelief: 123.12
+                example-latest-response:
+                  description: Example latest response
+                  value:
+                    submittedOn: '2020-12-12T12:12:12Z'
+                    totalExpenses: 123.12
+                    source: latest
+                    dateIgnored: '2020-12-11T12:12:12Z'
+                    expenses:
+                      businessTravelCosts: 123.12
+                      jobExpenses: 123.12
+                      flatRateJobExpenses: 123.12
+                      professionalSubscriptions: 123.12
+                      hotelAndMealExpenses: 123.12
+                      otherAndCapitalAllowances: 123.12
+                      vehicleExpenses: 123.12
+                      mileageAllowanceRelief: 123.12
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                FORMAT_TAX_SOURCE:
+                  description: The format of the supplied Source field is not valid.
+                  value:
+                    code: FORMAT_SOURCE
+                    message: The provided source is invalid
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: The matching resource was not found.
+                  value: &ref_22
+                    code: MATCHING_RESOURCE_NOT_FOUND
+                    message: Matching resource not found
+    delete:
+      summary: Delete Employment Expenses
+      security:
+        - User-Restricted:
+            - write:self-assessment
+      description: |
+        This endpoint allows a developer to delete employment expenses for a user and can only be used after the tax year has ended.<br>Deleting an expense will remove the amended expense and remove the "dateIgnored" flag from HMRC expenses.
+        This endpoint requires a National Insurance number and tax year.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
+        |-----------------------------------------|-------------------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates success response.                                                                     |
+        | NOT_FOUND                               | Simulates the scenario where the given expenses could not be found.                             |
+        | STATEFUL                                | Performs a stateful delete.                                                                     |
+        | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
+      tags:
+        - Employment Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_12
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_13
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_14
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
+          schema: *ref_15
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_16
+          required: false
+      responses:
+        '204':
+          description: Success(No Content)
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+                RULE_OUTSIDE_AMENDMENT_WINDOW:
+                  description: |
+                    The request cannot be completed as you are outside the amendment window.
+                  value: *ref_17
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: The supplied income source could not be found.
+                  value:
+                    code: MATCHING_RESOURCE_NOT_FOUND
+                    message: Matching resource not found
+  /individuals/expenses/employments/{nino}/{taxYear}/ignore:
+    post:
+      summary: Ignore Employment Expenses
+      description: |
+        This endpoint enables you to ignore HMRC-provided employment expenses for this user. This endpoint can only be used 
+        after the tax year has ended. A National Insurance number and tax year must be provided.
+
+        Ignoring an expense will remove any amended expenses and add the "dateIgnored" flag to HMRC-provided expenses.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
+        |-----------------------------------------|-------------------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates success response.                                                                     |
+        | TAX_YEAR_NOT_ENDED                      | Simulates the scenario where the submission is for a tax year that has not ended.               |
+        | NOT_FOUND                               | Scenario to simulate not found error.                                                           |
+        | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
+      tags:
+        - Employment Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_12
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_13
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_14
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
+          schema: *ref_15
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_16
+          required: false
+      security:
+        - User-Restricted:
+            - write:self-assessment
+      responses:
+        '204':
+          description: Success(No Content)
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_TAX_YEAR_NOT_ENDED:
+                  description: The submission has been made before the Tax year it relates to has ended.
+                  value: *ref_18
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+                RULE_OUTSIDE_AMENDMENT_WINDOW:
+                  description: |
+                    The request cannot be completed as you are outside the amendment window.
+                  value: *ref_17
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: The supplied expenses could not be found.
+                  value:
+                    code: MATCHING_RESOURCE_NOT_FOUND
+                    message: Matching resource not found
+  /individuals/expenses/other/{nino}/{taxYear}:
+    put:
+      summary: Create and Amend Other Expenses
+      security:
+        - User-Restricted:
+            - write:self-assessment
+      description: |
+        This endpoint enables you to create and amend other expenses.
+        A National Insurance number and tax year must be provided.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
+        |-----------------------------------------|-------------------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates a success response.                                                                   |
+        | STATEFUL                                | Performs a stateful create or update.                                                           |
+        | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
+      tags:
+        - Other Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_12
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_13
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_14
+          required: true
+        - name: Content-Type
+          in: header
+          description: |
+            Specifies the format of the request body, which must be JSON.
+          schema: *ref_19
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
+          schema: *ref_15
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_16
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $schema: http://json-schema.org/draft-04/schema#
+              title: Amend Expenses
+              description: Allows the amendments of expenses
+              type: object
+              properties:
+                paymentsToTradeUnionsForDeathBenefits:
+                  description: Payments made to a Trade union or friendly society for death benefits.
+                  type: object
+                  properties:
+                    customerReference:
+                      description: A reference the user supplies to identify the record.
+                      type: string
+                      example: TRADE UNION PAYMENTS
+                    expenseAmount:
+                      description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
+                      type: number
+                      example: '2000.99'
+                  required:
+                    - expenseAmount
+                  additionalProperties: false
+                patentRoyaltiesPayments:
+                  description: Payments made by the licensee to the licensor for the use of the patent. They are usually a percentage of the revenue generated by the patent, although they can sometimes be agreed as a fixed fee.
+                  type: object
+                  properties:
+                    customerReference:
+                      description: A reference the user supplies to identify the record.
+                      type: string
+                      example: ROYALTIES PAYMENTS
+                    expenseAmount:
+                      description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
+                      type: number
+                      example: '2000.99'
+                  required:
+                    - expenseAmount
+                  additionalProperties: false
+              additionalProperties: false
+            examples:
+              example-1:
+                description: Default Example
+                value:
+                  paymentsToTradeUnionsForDeathBenefits:
+                    customerReference: TRADE UNION PAYMENTS
+                    expenseAmount: 1223.22
+                  patentRoyaltiesPayments:
+                    customerReference: ROYALTIES PAYMENTS
+                    expenseAmount: 1223.22
+      responses:
+        '204':
+          description: Success(No Content)
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                FORMAT_VALUE:
+                  description: One or more values have been added with the incorrect format.
+                  value: *ref_20
+                FORMAT_CUSTOMER_REFERENCE:
+                  description: The format of customer reference is not valid.
+                  value:
+                    code: FORMAT_CUSTOMER_REFERENCE
+                    message: The provided customer reference is not valid
+                RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED:
+                  description: An empty or non-matching body was submitted.
+                  value: *ref_21
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+                RULE_OUTSIDE_AMENDMENT_WINDOW:
+                  description: |
+                    The request cannot be completed as you are outside the amendment window.
+                  value: *ref_17
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+    get:
+      summary: Retrieve Other Expenses
+      security:
+        - User-Restricted:
+            - read:self-assessment
+      description: |
+        This endpoint enables you to retrieve other expenses.
+        A National Insurance number and tax year must be provided.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                        |
+        |-----------------------------------------|-------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates success response.                     |
+        | NOT_FOUND                               | Simulates the scenario where no data is found.  |
+        | STATEFUL                                | Performs a stateful retrieve.                   |
+      tags:
+        - Other Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_12
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_13
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_14
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
+          schema:
+            type: string
+            example: Bearer bb7fed3fe10dd235a2ccda3d50fb
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_16
+          required: false
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                $schema: http://json-schema.org/draft-04/schema#
+                title: Retrieve Expenses
+                description: Allows the retrieval of expenses
+                type: object
+                properties:
+                  submittedOn:
+                    description: The date the expenses were added. It must be provided in the format YYYY-MM-DDThh:mm:ss.SSS'Z'
+                    type: string
+                    example: '2019-04-04T01:01:01.000Z'
+                  paymentsToTradeUnionsForDeathBenefits:
+                    description: Payments made to a Trade union or friendly society for death benefits.
+                    type: object
+                    properties:
+                      customerReference:
+                        description: A reference the user supplies to identify the record.
+                        type: string
+                        example: TRADE UNION PAYMENTS
+                      expenseAmount:
+                        description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                    required:
+                      - expenseAmount
+                    additionalProperties: false
+                  patentRoyaltiesPayments:
+                    description: Payments made by the licensee to the licensor for the use of the patent. They are usually a percentage of the revenue generated by the patent, although they can sometimes be agreed as a fixed fee.
+                    type: object
+                    properties:
+                      customerReference:
+                        description: A reference the user supplies to identify the record.
+                        type: string
+                        example: ROYALTIES PAYMENTS
+                      expenseAmount:
+                        description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
+                        type: number
+                        example: '2000.99'
+                    required:
+                      - expenseAmount
+                    additionalProperties: false
+                required:
+                  - submittedOn
+                additionalProperties: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: The matching resource was not found.
+                  value: *ref_22
+    delete:
+      summary: Delete Other Expenses
+      security:
+        - User-Restricted:
+            - write:self-assessment
+      description: |
+        This endpoint enables you to delete other expenses.
+        A National Insurance number and tax year must be provided.
+
+        ### Test data
+        Scenario simulation using Gov-Test-Scenario headers is only available in the sandbox environment.
+
+        | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
+        |-----------------------------------------|-------------------------------------------------------------------------------------------------|
+        | N/A - DEFAULT                           | Simulates success response.                                                                     |
+        | NOT_FOUND                               | Simulates the scenario where the given expenses could not be found.                             |
+        | STATEFUL                                | Performs a stateful delete.                                                                     |
+        | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
+      tags:
+        - Other Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_12
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_13
+          required: true
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_14
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
+          schema: *ref_15
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_16
+          required: false
+      responses:
+        '204':
+          description: Success(No Content)
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+        '400':
+          description: Bad request
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                FORMAT_NINO:
+                  description: The format of the supplied NINO field is not valid.
+                  value: *ref_6
+                FORMAT_TAX_YEAR:
+                  description: The format of the supplied taxYear field is not valid.
+                  value: *ref_7
+                RULE_TAX_YEAR_RANGE_INVALID:
+                  description: Tax year range invalid. A tax year range of one year is required.
+                  value: *ref_9
+                RULE_TAX_YEAR_NOT_SUPPORTED:
+                  description: |
+                    The specified tax year is not supported.
+                    Either the tax year specified is before the minimum tax year value,
+                    or it is after the maximum tax year value.
+                  value: *ref_8
+                RULE_INCORRECT_GOV_TEST_SCENARIO:
+                  description: |
+                    The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
+                    this endpoint version. This error will only be returned in the Sandbox environment.
+                  value: *ref_10
+                RULE_OUTSIDE_AMENDMENT_WINDOW:
+                  description: |
+                    The request cannot be completed as you are outside the amendment window.
+                  value: *ref_17
+        '403':
+          description: Forbidden
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                CLIENT_OR_AGENT_NOT_AUTHORISED:
+                  description: |
+                    The client and/or agent is not authorised. This is normally because:
+                    the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
+                    or the client has not authorised the agent to act on their behalf.
+                  value: *ref_11
+        '404':
+          description: Not Found
+          headers:
+            X-CorrelationId:
+              in: header
+              type: string
+              description: |
+                Unique ID for operation tracking
+                String, 36 characters.
+              schema: *ref_0
+              required: true
+            Deprecation:
+              name: Deprecation
+              in: header
+              description: |
+                The deprecation date/time for this endpoint.
+              schema: *ref_1
+              required: false
+            Sunset:
+              name: Sunset
+              in: header
+              description: |
+                The earliest date/time this endpoint will become unavailable after deprecation.
+              schema: *ref_2
+              required: false
+            Link:
+              name: Link
+              in: header
+              description: |
+                See the API documentation:
+              schema: *ref_3
+              required: false
+          content:
+            application/json:
+              schema:
+                description: Error Response
+                type: object
+                properties: *ref_4
+                required: *ref_5
+              examples:
+                MATCHING_RESOURCE_NOT_FOUND:
+                  description: The matching resource was not found.
+                  value: *ref_22
+components:
+  securitySchemes:
+    User-Restricted:
+      type: oauth2
+      description: HMRC supports OAuth 2.0 for authenticating [User-restricted](https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/user-restricted-endpoints) API requests
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            write:self-assessment: Grant write access
+            read:self-assessment: Grant read access
