@@ -44,10 +44,10 @@ tags:
 paths:
   /individuals/expenses/employments/{nino}/{taxYear}:
     put:
-      summary: Create and Amend Employment Expenses
       security:
         - User-Restricted:
             - write:self-assessment
+      summary: Create and Amend Employment Expenses
       description: |
         This endpoint enables you to add or update existing employment expenses. This endpoint can only be used after the tax 
         year has ended. A National Insurance number and tax year are required.
@@ -72,7 +72,7 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: &ref_12
+          schema: &ref_6
             type: string
             example: TC663795B
           required: true
@@ -80,7 +80,7 @@ paths:
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: &ref_13
+          schema: &ref_7
             type: string
             pattern: ^\d{4}-\d{2}$
             example: 2022-23
@@ -89,7 +89,7 @@ paths:
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: &ref_14
+          schema: &ref_8
             type: string
             enum:
               - application/vnd.hmrc.3.0+json
@@ -107,7 +107,7 @@ paths:
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
-          schema: &ref_15
+          schema: &ref_16
             type: string
             example: Bearer bb7fed3fe10dd235a2ccda3d50fb
           required: true
@@ -115,7 +115,7 @@ paths:
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: &ref_16
+          schema: &ref_9
             type: string
             example: '-'
           required: false
@@ -196,15 +196,7 @@ paths:
               example-1:
                 description: Default Example
                 value:
-                  expenses:
-                    businessTravelCosts: 1234.23
-                    jobExpenses: 1223.22
-                    flatRateJobExpenses: 1223.22
-                    professionalSubscriptions: 1223.22
-                    hotelAndMealExpenses: 1223.22
-                    otherAndCapitalAllowances: 1223.22
-                    vehicleExpenses: 1223.22
-                    mileageAllowanceRelief: 1223.22
+                  $ref: ./examples/create_and_amend_employment_expenses/request.json
       responses:
         '204':
           description: Success(No Content)
@@ -295,12 +287,12 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: &ref_6
+                  value: &ref_10
                     code: FORMAT_NINO
                     message: The provided NINO is invalid
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: &ref_7
+                  value: &ref_11
                     code: FORMAT_TAX_YEAR
                     message: The provided tax year is invalid
                 FORMAT_VALUE:
@@ -318,12 +310,12 @@ paths:
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: &ref_8
+                  value: &ref_12
                     code: RULE_TAX_YEAR_NOT_SUPPORTED
                     message: The tax year specified does not lie within the supported range
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: &ref_9
+                  value: &ref_13
                     code: RULE_TAX_YEAR_RANGE_INVALID
                     message: Tax year range invalid. A tax year range of one year is required
                 RULE_TAX_YEAR_NOT_ENDED:
@@ -341,7 +333,7 @@ paths:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: &ref_10
+                  value: &ref_14
                     code: RULE_INCORRECT_GOV_TEST_SCENARIO
                     message: The supplied Gov-Test-Scenario is not valid
                 RULE_OUTSIDE_AMENDMENT_WINDOW:
@@ -395,7 +387,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: &ref_11
+                  value: &ref_15
                     code: CLIENT_OR_AGENT_NOT_AUTHORISED
                     message: The client and/or agent is not authorised
         '404':
@@ -444,12 +436,10 @@ paths:
                     code: MATCHING_RESOURCE_NOT_FOUND
                     message: Matching resource not found
     get:
-      summary: Retrieve Employment Expenses
       security:
         - User-Restricted:
             - read:self-assessment
-      parameters:
-        - $ref: ./common/queryParameters.yaml#/components/parameters/source
+      summary: Retrieve Employment Expenses
       description: |
         This endpoint enables you to retrieve existing employment expenses.
         A National Insurance number and tax year must be provided.
@@ -469,6 +459,51 @@ paths:
            | STATEFUL                                                                                                                                                              | Performs a stateful retrieve. <p> Information and data held by HMRC is not available in the sandbox environment. Providing ‘source=hmrcHeld’ will result in the expected HTTP 404 (matching resource not found) error being returned. </p> | 
       tags:
         - Employment Expenses
+      parameters:
+        - name: nino
+          in: path
+          description: |
+            National Insurance number, in the format `AA999999A`
+          schema: *ref_6
+          required: true
+        - name: taxYear
+          in: path
+          description: |
+            The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
+          schema: *ref_7
+          required: true
+        - in: query
+          name: source
+          description: |
+            Specifies the source of data to be returned. If source is not provided, the latest submitted values will be 
+            returned.
+          schema:
+            type: string
+            enum:
+              - user
+              - hmrcHeld
+              - latest
+            example: latest
+        - name: Accept
+          in: header
+          description: |
+            Specifies the response format and the version of the API to be used.
+          schema: *ref_8
+          required: true
+        - name: Authorization
+          in: header
+          description: |
+            An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
+          schema: &ref_22
+            type: string
+            example: Bearer bb7fed3fe10dd235a2ccda3d50fb
+          required: true
+        - name: Gov-Test-Scenario
+          in: header
+          description: |
+            Only in sandbox environment. See Test Data table for all header values.
+          schema: *ref_9
+          required: false
       responses:
         '200':
           description: Success
@@ -604,51 +639,15 @@ paths:
                 example-user-response:
                   description: Example user response
                   value:
-                    submittedOn: '2020-12-12T12:12:12Z'
-                    totalExpenses: 123.12
-                    source: user
-                    dateIgnored: '2020-12-11T12:12:12Z'
-                    expenses:
-                      businessTravelCosts: 123.12
-                      jobExpenses: 123.12
-                      flatRateJobExpenses: 123.12
-                      professionalSubscriptions: 123.12
-                      hotelAndMealExpenses: 123.12
-                      otherAndCapitalAllowances: 123.12
-                      vehicleExpenses: 123.12
-                      mileageAllowanceRelief: 123.12
+                    $ref: ./examples/retrieve_employment_expenses/user.json
                 example-hmrcHeld-response:
                   description: Example hmrcHeld response
                   value:
-                    submittedOn: '2020-12-12T12:12:12Z'
-                    totalExpenses: 123.12
-                    source: hmrcHeld
-                    dateIgnored: '2020-12-11T12:12:12Z'
-                    expenses:
-                      businessTravelCosts: 123.12
-                      jobExpenses: 123.12
-                      flatRateJobExpenses: 123.12
-                      professionalSubscriptions: 123.12
-                      hotelAndMealExpenses: 123.12
-                      otherAndCapitalAllowances: 123.12
-                      vehicleExpenses: 123.12
-                      mileageAllowanceRelief: 123.12
+                    $ref: ./examples/retrieve_employment_expenses/hmrc_held.json
                 example-latest-response:
                   description: Example latest response
                   value:
-                    submittedOn: '2020-12-12T12:12:12Z'
-                    totalExpenses: 123.12
-                    source: latest
-                    dateIgnored: '2020-12-11T12:12:12Z'
-                    expenses:
-                      businessTravelCosts: 123.12
-                      jobExpenses: 123.12
-                      flatRateJobExpenses: 123.12
-                      professionalSubscriptions: 123.12
-                      hotelAndMealExpenses: 123.12
-                      otherAndCapitalAllowances: 123.12
-                      vehicleExpenses: 123.12
-                      mileageAllowanceRelief: 123.12
+                    $ref: ./examples/retrieve_employment_expenses/latest.json
         '400':
           description: Bad request
           headers:
@@ -691,10 +690,10 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 FORMAT_TAX_SOURCE:
                   description: The format of the supplied Source field is not valid.
                   value:
@@ -705,15 +704,15 @@ paths:
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
         '403':
           description: Forbidden
           headers:
@@ -759,7 +758,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
         '404':
           description: Not Found
           headers:
@@ -802,14 +801,14 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: &ref_22
+                  value: &ref_23
                     code: MATCHING_RESOURCE_NOT_FOUND
                     message: Matching resource not found
     delete:
-      summary: Delete Employment Expenses
       security:
         - User-Restricted:
             - write:self-assessment
+      summary: Delete Employment Expenses
       description: |
         This endpoint allows a developer to delete employment expenses for a user and can only be used after the tax year has ended.<br>Deleting an expense will remove the amended expense and remove the "dateIgnored" flag from HMRC expenses.
         This endpoint requires a National Insurance number and tax year.
@@ -830,31 +829,31 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: *ref_12
+          schema: *ref_6
           required: true
         - name: taxYear
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: *ref_13
+          schema: *ref_7
           required: true
         - name: Accept
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: *ref_14
+          schema: *ref_8
           required: true
         - name: Authorization
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
-          schema: *ref_15
+          schema: *ref_16
           required: true
         - name: Gov-Test-Scenario
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: *ref_16
+          schema: *ref_9
           required: false
       responses:
         '204':
@@ -931,24 +930,24 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_TAX_YEAR_NOT_SUPPORTED:
                   description: |
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
                 RULE_OUTSIDE_AMENDMENT_WINDOW:
                   description: |
                     The request cannot be completed as you are outside the amendment window.
@@ -998,7 +997,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
         '404':
           description: Not Found
           headers:
@@ -1069,31 +1068,31 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: *ref_12
+          schema: *ref_6
           required: true
         - name: taxYear
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: *ref_13
+          schema: *ref_7
           required: true
         - name: Accept
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: *ref_14
+          schema: *ref_8
           required: true
         - name: Authorization
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
-          schema: *ref_15
+          schema: *ref_16
           required: true
         - name: Gov-Test-Scenario
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: *ref_16
+          schema: *ref_9
           required: false
       security:
         - User-Restricted:
@@ -1173,19 +1172,19 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_TAX_YEAR_NOT_SUPPORTED:
                   description: |
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_TAX_YEAR_NOT_ENDED:
                   description: The submission has been made before the Tax year it relates to has ended.
                   value: *ref_18
@@ -1193,7 +1192,7 @@ paths:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
                 RULE_OUTSIDE_AMENDMENT_WINDOW:
                   description: |
                     The request cannot be completed as you are outside the amendment window.
@@ -1243,7 +1242,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
         '404':
           description: Not Found
           headers:
@@ -1291,10 +1290,10 @@ paths:
                     message: Matching resource not found
   /individuals/expenses/other/{nino}/{taxYear}:
     put:
-      summary: Create and Amend Other Expenses
       security:
         - User-Restricted:
             - write:self-assessment
+      summary: Create and Amend Other Expenses
       description: |
         This endpoint enables you to create and amend other expenses.
         A National Insurance number and tax year must be provided.
@@ -1314,19 +1313,19 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: *ref_12
+          schema: *ref_6
           required: true
         - name: taxYear
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: *ref_13
+          schema: *ref_7
           required: true
         - name: Accept
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: *ref_14
+          schema: *ref_8
           required: true
         - name: Content-Type
           in: header
@@ -1338,13 +1337,13 @@ paths:
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
-          schema: *ref_15
+          schema: *ref_16
           required: true
         - name: Gov-Test-Scenario
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: *ref_16
+          schema: *ref_9
           required: false
       requestBody:
         content:
@@ -1390,12 +1389,7 @@ paths:
               example-1:
                 description: Default Example
                 value:
-                  paymentsToTradeUnionsForDeathBenefits:
-                    customerReference: TRADE UNION PAYMENTS
-                    expenseAmount: 1223.22
-                  patentRoyaltiesPayments:
-                    customerReference: ROYALTIES PAYMENTS
-                    expenseAmount: 1223.22
+                  $ref: ./examples/create_and_amend_other_expenses/request.json
       responses:
         '204':
           description: Success(No Content)
@@ -1471,10 +1465,10 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 FORMAT_VALUE:
                   description: One or more values have been added with the incorrect format.
                   value: *ref_20
@@ -1491,15 +1485,15 @@ paths:
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
                 RULE_OUTSIDE_AMENDMENT_WINDOW:
                   description: |
                     The request cannot be completed as you are outside the amendment window.
@@ -1549,12 +1543,12 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
     get:
-      summary: Retrieve Other Expenses
       security:
         - User-Restricted:
             - read:self-assessment
+      summary: Retrieve Other Expenses
       description: |
         This endpoint enables you to retrieve other expenses.
         A National Insurance number and tax year must be provided.
@@ -1574,33 +1568,31 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: *ref_12
+          schema: *ref_6
           required: true
         - name: taxYear
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: *ref_13
+          schema: *ref_7
           required: true
         - name: Accept
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: *ref_14
+          schema: *ref_8
           required: true
         - name: Authorization
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
-          schema:
-            type: string
-            example: Bearer bb7fed3fe10dd235a2ccda3d50fb
+          schema: *ref_22
           required: true
         - name: Gov-Test-Scenario
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: *ref_16
+          schema: *ref_9
           required: false
       responses:
         '200':
@@ -1722,24 +1714,24 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 RULE_TAX_YEAR_NOT_SUPPORTED:
                   description: |
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
         '403':
           description: Forbidden
           headers:
@@ -1785,7 +1777,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
         '404':
           description: Not Found
           headers:
@@ -1828,12 +1820,12 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: *ref_22
+                  value: *ref_23
     delete:
-      summary: Delete Other Expenses
       security:
         - User-Restricted:
             - write:self-assessment
+      summary: Delete Other Expenses
       description: |
         This endpoint enables you to delete other expenses.
         A National Insurance number and tax year must be provided.
@@ -1854,31 +1846,31 @@ paths:
           in: path
           description: |
             National Insurance number, in the format `AA999999A`
-          schema: *ref_12
+          schema: *ref_6
           required: true
         - name: taxYear
           in: path
           description: |
             The tax year to which the data applies. For example: 2022-23. The start year and end year must not span two tax years. The minimum tax year is 2022-23. No gaps are allowed, for example, 2022-24 is not valid. (The minimum tax year in Sandbox is 2021-22.)
-          schema: *ref_13
+          schema: *ref_7
           required: true
         - name: Accept
           in: header
           description: |
             Specifies the response format and the version of the API to be used.
-          schema: *ref_14
+          schema: *ref_8
           required: true
         - name: Authorization
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *write:self-assessment* scope.
-          schema: *ref_15
+          schema: *ref_16
           required: true
         - name: Gov-Test-Scenario
           in: header
           description: |
             Only in sandbox environment. See Test Data table for all header values.
-          schema: *ref_16
+          schema: *ref_9
           required: false
       responses:
         '204':
@@ -1955,24 +1947,24 @@ paths:
               examples:
                 FORMAT_NINO:
                   description: The format of the supplied NINO field is not valid.
-                  value: *ref_6
+                  value: *ref_10
                 FORMAT_TAX_YEAR:
                   description: The format of the supplied taxYear field is not valid.
-                  value: *ref_7
+                  value: *ref_11
                 RULE_TAX_YEAR_RANGE_INVALID:
                   description: Tax year range invalid. A tax year range of one year is required.
-                  value: *ref_9
+                  value: *ref_13
                 RULE_TAX_YEAR_NOT_SUPPORTED:
                   description: |
                     The specified tax year is not supported.
                     Either the tax year specified is before the minimum tax year value,
                     or it is after the maximum tax year value.
-                  value: *ref_8
+                  value: *ref_12
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
                     this endpoint version. This error will only be returned in the Sandbox environment.
-                  value: *ref_10
+                  value: *ref_14
                 RULE_OUTSIDE_AMENDMENT_WINDOW:
                   description: |
                     The request cannot be completed as you are outside the amendment window.
@@ -2022,7 +2014,7 @@ paths:
                     The client and/or agent is not authorised. This is normally because:
                     the client is not subscribed to MTD, the agent is not subscribed to Agent Services,
                     or the client has not authorised the agent to act on their behalf.
-                  value: *ref_11
+                  value: *ref_15
         '404':
           description: Not Found
           headers:
@@ -2065,7 +2057,7 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: *ref_22
+                  value: *ref_23
 components:
   securitySchemes:
     User-Restricted:
