@@ -38,29 +38,14 @@ tags:
 paths:
   /individuals/expenses/employments/{nino}/{taxYear}:
     get:
-      summary: Retrieve Employment Expenses
-      parameters:
-      - name: source
-        in: query
-        description: "Specifies the source of data to be returned. If source is not\
-          \ provided, the latest submitted values will be \nreturned.\n"
-        schema:
-          type: string
-          example: latest
-          enum:
-          - user
-          - hmrcHeld
-          - latest
       security:
       - User-Restricted:
         - read:self-assessment
     put:
-      summary: Create and Amend Employment Expenses
       security:
       - User-Restricted:
         - write:self-assessment
     delete:
-      summary: Delete Employment Expenses
       security:
       - User-Restricted:
         - write:self-assessment
@@ -366,17 +351,14 @@ paths:
         - write:self-assessment
   /individuals/expenses/other/{nino}/{taxYear}:
     get:
-      summary: Retrieve Other Expenses
       security:
       - User-Restricted:
         - read:self-assessment
     put:
-      summary: Create and Amend Other Expenses
       security:
       - User-Restricted:
         - write:self-assessment
     delete:
-      summary: Delete Other Expenses
       security:
       - User-Restricted:
         - write:self-assessment
@@ -395,18 +377,6 @@ components:
           description: The error message
       description: Error Response
   parameters:
-    source:
-      name: source
-      in: query
-      description: "Specifies the source of data to be returned. If source is not\
-        \ provided, the latest submitted values will be \nreturned.\n"
-      schema:
-        type: string
-        example: latest
-        enum:
-        - user
-        - hmrcHeld
-        - latest
     nino:
       name: nino
       in: path
