@@ -40,11 +40,11 @@ responses:
       X-CorrelationId:
         $ref: './common/headers.yaml#/components/parameters/correlationId'
       Deprecation:
-        $ref: ./common/headers.yaml#/components/parameters/deprecationHeader
+        $ref: './common/headers.yaml#/components/parameters/deprecationHeader'
       Sunset:
-        $ref: ./common/headers.yaml#/components/parameters/sunsetHeader
+        $ref: './common/headers.yaml#/components/parameters/sunsetHeader'
       Link:
-        $ref: ./common/headers.yaml#/components/parameters/linkHeader
+        $ref: './common/headers.yaml#/components/parameters/linkHeader'
 
     content:
       application/json:
@@ -70,11 +70,11 @@ responses:
       X-CorrelationId:
         $ref: './common/headers.yaml#/components/parameters/correlationId'
       Deprecation:
-        $ref: ./common/headers.yaml#/components/parameters/deprecationHeader
+        $ref: './common/headers.yaml#/components/parameters/deprecationHeader'
       Sunset:
-        $ref: ./common/headers.yaml#/components/parameters/sunsetHeader
+        $ref: './common/headers.yaml#/components/parameters/sunsetHeader'
       Link:
-        $ref: ./common/headers.yaml#/components/parameters/linkHeader
+        $ref: './common/headers.yaml#/components/parameters/linkHeader'
     content:
       application/json:
         schema:
@@ -99,11 +99,11 @@ responses:
       X-CorrelationId:
         $ref: './common/headers.yaml#/components/parameters/correlationId'
       Deprecation:
-        $ref: ./common/headers.yaml#/components/parameters/deprecationHeader
+        $ref: './common/headers.yaml#/components/parameters/deprecationHeader'
       Sunset:
-        $ref: ./common/headers.yaml#/components/parameters/sunsetHeader
+        $ref: './common/headers.yaml#/components/parameters/sunsetHeader'
       Link:
-        $ref: ./common/headers.yaml#/components/parameters/linkHeader
+        $ref: './common/headers.yaml#/components/parameters/linkHeader'
     content:
       application/json:
         schema:
@@ -118,11 +118,11 @@ responses:
       X-CorrelationId:
         $ref: './common/headers.yaml#/components/parameters/correlationId'
       Deprecation:
-        $ref: ./common/headers.yaml#/components/parameters/deprecationHeader
+        $ref: './common/headers.yaml#/components/parameters/deprecationHeader'
       Sunset:
-        $ref: ./common/headers.yaml#/components/parameters/sunsetHeader
+        $ref: './common/headers.yaml#/components/parameters/sunsetHeader'
       Link:
-        $ref: ./common/headers.yaml#/components/parameters/linkHeader
+        $ref: './common/headers.yaml#/components/parameters/linkHeader'
     content:
       application/json:
         schema:
