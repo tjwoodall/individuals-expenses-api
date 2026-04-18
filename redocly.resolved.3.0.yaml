@@ -138,56 +138,80 @@ paths:
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     jobExpenses:
                       description: |-
                         The actual expense of replacing or maintaining tools or special work clothes.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     flatRateJobExpenses:
                       description: |-
                         Fixed rate expenses applied for replacing or maintaining tools or special work clothes.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     professionalSubscriptions:
                       description: |-
                         Fees or subscriptions to professional bodies, required in order to undertake the employment.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     hotelAndMealExpenses:
                       description: |-
                         Subsistence costs incurred with work.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     otherAndCapitalAllowances:
                       description: |-
                         The expense from purchasing small items required for this employment.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     vehicleExpenses:
                       description: |-
                         Vehicle expenses for using own car, van or motorcycle for business mileage occurred during work.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                     mileageAllowanceRelief:
                       description: |-
                         The shortfall incurred when the employer pays less than the approved mileage rate.
 
                         The value must be between 0 and 99999999999.99
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                   additionalProperties: false
               required:
                 - expenses
@@ -558,7 +582,10 @@ paths:
 
                       The value must be between  0 and 99999999999.99 up to 2 decimal places.
                     type: number
-                    example: '2000.99'
+                    multipleOf: 0.01
+                    minimum: 0
+                    maximum: 99999999999.99
+                    example: 2000.99
                   source:
                     description: Specifies the source of data returned. "latest" combines the HMRC and user-provided overridden values.
                     type: string
@@ -583,56 +610,80 @@ paths:
 
                           The value must be between 0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       jobExpenses:
                         description: |-
                           The actual expense of replacing or maintaining tools or special work clothes.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       flatRateJobExpenses:
                         description: |-
                           Fixed rate expenses applied for replacing or maintaining tools or special work clothes.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       professionalSubscriptions:
                         description: |-
                           Fees or subscriptions to professional bodies, required in order to undertake the employment.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       hotelAndMealExpenses:
                         description: |-
                           Subsistence costs incurred with work.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       otherAndCapitalAllowances:
                         description: |-
                           The expense from purchasing small items required for this employment.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       vehicleExpenses:
                         description: |-
                           Fuel and other costs when using a company vehicle.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                       mileageAllowanceRelief:
                         description: |-
                           The shortfall incurred when the employer pays less than the approved mileage rate.
 
                           The value must be between  0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                     additionalProperties: false
                 additionalProperties: false
               examples:
@@ -1365,7 +1416,10 @@ paths:
                     expenseAmount:
                       description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                   required:
                     - expenseAmount
                   additionalProperties: false
@@ -1380,7 +1434,10 @@ paths:
                     expenseAmount:
                       description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
                       type: number
-                      example: '2000.99'
+                      multipleOf: 0.01
+                      minimum: 0
+                      maximum: 99999999999.99
+                      example: 2000.99
                   required:
                     - expenseAmount
                   additionalProperties: false
@@ -1650,7 +1707,10 @@ paths:
                       expenseAmount:
                         description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                     required:
                       - expenseAmount
                     additionalProperties: false
@@ -1665,7 +1725,10 @@ paths:
                       expenseAmount:
                         description: The amount spent or cost incurred. The value must be between 0 and 99999999999.99 up to 2 decimal places.
                         type: number
-                        example: '2000.99'
+                        multipleOf: 0.01
+                        minimum: 0
+                        maximum: 99999999999.99
+                        example: 2000.99
                     required:
                       - expenseAmount
                     additionalProperties: false
