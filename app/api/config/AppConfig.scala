@@ -73,11 +73,10 @@ class AppConfig @Inject() (config: ServicesConfig, protected[config] val configu
   def apiGatewayContext: String                    = config.getString("api.gateway.context")
   def confidenceLevelConfig: ConfidenceLevelConfig = configuration.get[ConfidenceLevelConfig](s"api.confidence-level-check")
 
-  def apiStatus(version: Version): String = config.getString(s"api.$version.status")
-
-  def featureSwitchConfig: Configuration = configuration.getOptional[Configuration](s"feature-switch").getOrElse(Configuration.empty)
-
+  def apiStatus(version: Version): String        = config.getString(s"api.$version.status")
+  def featureSwitchConfig: Configuration         = configuration.getOptional[Configuration](s"feature-switch").getOrElse(Configuration.empty)
   def endpointsEnabled(version: String): Boolean = config.getBoolean(s"api.$version.endpoints.enabled")
+  def controlledAccessEnabled: Boolean           = config.getBoolean("api.controlled-access.enabled")
 
   /** Like endpointsEnabled, but will return false if version doesn't exist.
     */
