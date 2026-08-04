@@ -88,6 +88,7 @@ class ApiDefinitionFactorySpec extends UnitSpec {
         MockedAppConfig.apiStatus(Version3) returns "BETA"
         MockedAppConfig.deprecationFor(Version3).returns(NotDeprecated.valid).anyNumberOfTimes()
         val result: APIStatus = apiDefinitionFactory.buildAPIStatus(Version3)
+        result shouldBe BETA
       }
 
     }
@@ -122,8 +123,7 @@ class ApiDefinitionFactorySpec extends UnitSpec {
   trait Test extends MockAppConfig {
     MockedAppConfig.apiGatewayContext returns "individuals/expenses"
 
-    val apiDefinitionFactory: ApiDefinitionFactory = new ApiDefinitionFactory(mockAppConfig) {}
-
+    val apiDefinitionFactory: ApiDefinitionFactory = new ApiDefinitionFactory(mockAppConfig)
   }
 
 }
