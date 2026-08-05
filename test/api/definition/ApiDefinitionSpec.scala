@@ -22,35 +22,29 @@ import play.api.libs.json.{JsValue, Json}
 
 class ApiDefinitionSpec extends UnitSpec {
 
-  private val apiVersion: APIVersion       = APIVersion(Version3, APIStatus.ALPHA, endpointsEnabled = true)
+  private val apiVersion: APIVersion       = APIVersion(Version3, APIStatus.BETA, APIAccessType.PUBLIC, endpointsEnabled = true)
   private val apiDefinition: APIDefinition = APIDefinition("b", "c", "d", List("category"), List(apiVersion), Some(false))
 
   private val apiVersionJson: JsValue = Json.parse("""
       |{
       |"version": "3.0",
-      |"status": "ALPHA",
+      |"status": "BETA",
+      |"access": "PUBLIC",
       |"endpointsEnabled": true
       |}""".stripMargin)
 
-  private val apiDefinitionJson: JsValue = Json.parse("""{
+  private val apiDefinitionJson: JsValue = Json.parse(s"""{
       |"name": "b",
       |"description": "c",
       |"context": "d",
       |"categories": ["category"],
-      |"versions": [{"version":"3.0","status":"ALPHA","endpointsEnabled":true}],
+      |"versions": [$apiVersionJson],
       |"requiresTrust": false
       |}""".stripMargin)
 
   private val definitionJson: JsValue = Json.parse(
-    """{
-      | "api": {
-      |   "name": "b",
-      |   "description": "c",
-      |   "context": "d",
-      |   "categories": ["category"],
-      |   "versions": [{"version":"3.0","status":"ALPHA","endpointsEnabled":true}],
-      |   "requiresTrust": false
-      | }
+    s"""{
+      | "api": $apiDefinitionJson
       |}""".stripMargin
   )
 
