@@ -41,8 +41,7 @@ requestBody:
       examples:
         example-1:
           description: Default Example
-          value:
-            $ref: './examples/create_and_amend_employment_expenses/request.json'
+          externalValue: './examples/create_and_amend_employment_expenses/request.json'
 
 responses:
   "204":
