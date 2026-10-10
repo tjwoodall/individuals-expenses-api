@@ -66,7 +66,6 @@ paths:
         | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
         |-----------------------------------------|-------------------------------------------------------------------------------------------------|
         | N/A - DEFAULT                           | Simulates success response.                                                                     |
-        | TAX_YEAR_NOT_ENDED                      | Simulates the scenario where the submission is for a tax year that has not ended.               |
         | NOT_FOUND                               | Scenario to simulate not found error.                                                           |
         | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
       parameters:
@@ -112,6 +111,18 @@ paths:
         schema:
           type: string
           example: "-"
+      - name: suspend-temporal-validations
+        in: header
+        description: "Only in the sandbox environment. When supplied and set to `true`,\
+          \ this header relaxes tax year validation rule to \nallow in-year submissions\
+          \ for endpoints configured for end-of-year submissions. Not supplying the\
+          \ header or setting \nit to `false` results in a `RULE_TAX_YEAR_NOT_ENDED`\
+          \ error for in-year submissions. In Production, the header is\nignored and\
+          \ normal validations apply.\n"
+        required: false
+        schema:
+          type: boolean
+          example: true
       responses:
         "204":
           description: Success(No Content)
@@ -423,6 +434,19 @@ components:
       schema:
         type: string
         example: "-"
+    suspendTemporalValidationsHeader:
+      name: suspend-temporal-validations
+      in: header
+      description: "Only in the sandbox environment. When supplied and set to `true`,\
+        \ this header relaxes tax year validation rule to \nallow in-year submissions\
+        \ for endpoints configured for end-of-year submissions. Not supplying the\
+        \ header or setting \nit to `false` results in a `RULE_TAX_YEAR_NOT_ENDED`\
+        \ error for in-year submissions. In Production, the header is\nignored and\
+        \ normal validations apply.\n"
+      required: false
+      schema:
+        type: boolean
+        example: true
   examples:
     formatNino:
       description: The format of the supplied NINO field is not valid.
