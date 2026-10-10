@@ -60,7 +60,6 @@ paths:
         | Header Value (Gov-Test-Scenario)        | Scenario                                                                                                                                                                        |
         |-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
         | N/A - DEFAULT                           | Simulates success response.                                                                                                                                                     |
-        | TAX_YEAR_NOT_ENDED                      | Simulates the scenario where the submission is for a tax year that has not ended.                                                                                               | 
         | NOT_FOUND                               | Scenario to simulate not found error.                                                                                                                                           |
         | RULE_INVALID_SUBMISSION_PENSION_SCHEME  | Simulates the scenario where customer with single employment source that has "occupational pension" indicator cannot submit employment expenses.                                |
         | STATEFUL                                | Performs a stateful create or update.<br><br>At least one custom employment with ‘occupationalPension = false’ must be created for the tax year before you can submit expenses. |
@@ -98,7 +97,7 @@ paths:
           in: header
           description: |
             Specifies the format of the request body, which must be JSON.
-          schema: &ref_19
+          schema: &ref_20
             type: string
             enum:
               - application/json
@@ -118,6 +117,17 @@ paths:
           schema: &ref_9
             type: string
             example: '-'
+          required: false
+        - name: suspend-temporal-validations
+          in: header
+          description: |
+            Only in the sandbox environment. When supplied and set to `true`, this header relaxes tax year validation rule to 
+            allow in-year submissions for endpoints configured for end-of-year submissions. Not supplying the header or setting 
+            it to `false` results in a `RULE_TAX_YEAR_NOT_ENDED` error for in-year submissions. In Production, the header is
+            ignored and normal validations apply.
+          schema: &ref_18
+            type: boolean
+            example: true
           required: false
       requestBody:
         content:
@@ -321,12 +331,12 @@ paths:
                     message: The provided tax year is invalid
                 FORMAT_VALUE:
                   description: One or more values have been added with the incorrect format.
-                  value: &ref_20
+                  value: &ref_21
                     code: FORMAT_VALUE
                     message: The value must be between 0 and 99999999999.99
                 RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED:
                   description: An empty or non-matching body was submitted.
-                  value: &ref_21
+                  value: &ref_22
                     code: RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED
                     message: An empty or non-matching body was submitted
                 RULE_TAX_YEAR_NOT_SUPPORTED:
@@ -344,7 +354,7 @@ paths:
                     message: Tax year range invalid. A tax year range of one year is required
                 RULE_TAX_YEAR_NOT_ENDED:
                   description: The submission has been made before the Tax year it relates to has ended.
-                  value: &ref_18
+                  value: &ref_19
                     code: RULE_TAX_YEAR_NOT_ENDED
                     message: Tax year not ended
                 RULE_INVALID_SUBMISSION_PENSION_SCHEME:
@@ -518,7 +528,7 @@ paths:
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
-          schema: &ref_22
+          schema: &ref_23
             type: string
             example: Bearer bb7fed3fe10dd235a2ccda3d50fb
           required: true
@@ -847,7 +857,7 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: &ref_23
+                  value: &ref_24
                     code: MATCHING_RESOURCE_NOT_FOUND
                     message: Matching resource not found
     delete:
@@ -1104,7 +1114,6 @@ paths:
         | Header Value (Gov-Test-Scenario)        | Scenario                                                                                        |
         |-----------------------------------------|-------------------------------------------------------------------------------------------------|
         | N/A - DEFAULT                           | Simulates success response.                                                                     |
-        | TAX_YEAR_NOT_ENDED                      | Simulates the scenario where the submission is for a tax year that has not ended.               |
         | NOT_FOUND                               | Scenario to simulate not found error.                                                           |
         | OUTSIDE_AMENDMENT_WINDOW                | Simulates the scenario where request cannot be completed as it is outside the amendment window. |
       tags:
@@ -1139,6 +1148,15 @@ paths:
           description: |
             Only in sandbox environment. See Test Data table for all header values.
           schema: *ref_9
+          required: false
+        - name: suspend-temporal-validations
+          in: header
+          description: |
+            Only in the sandbox environment. When supplied and set to `true`, this header relaxes tax year validation rule to 
+            allow in-year submissions for endpoints configured for end-of-year submissions. Not supplying the header or setting 
+            it to `false` results in a `RULE_TAX_YEAR_NOT_ENDED` error for in-year submissions. In Production, the header is
+            ignored and normal validations apply.
+          schema: *ref_18
           required: false
       security:
         - User-Restricted:
@@ -1233,7 +1251,7 @@ paths:
                   value: *ref_12
                 RULE_TAX_YEAR_NOT_ENDED:
                   description: The submission has been made before the Tax year it relates to has ended.
-                  value: *ref_18
+                  value: *ref_19
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
                     The request did not match any available Sandbox data. Check that the supplied Gov-Test-Scenario is correct for 
@@ -1377,7 +1395,7 @@ paths:
           in: header
           description: |
             Specifies the format of the request body, which must be JSON.
-          schema: *ref_19
+          schema: *ref_20
           required: true
         - name: Authorization
           in: header
@@ -1525,7 +1543,7 @@ paths:
                   value: *ref_11
                 FORMAT_VALUE:
                   description: One or more values have been added with the incorrect format.
-                  value: *ref_20
+                  value: *ref_21
                 FORMAT_CUSTOMER_REFERENCE:
                   description: The format of customer reference is not valid.
                   value:
@@ -1533,7 +1551,7 @@ paths:
                     message: The provided customer reference is not valid
                 RULE_INCORRECT_OR_EMPTY_BODY_SUBMITTED:
                   description: An empty or non-matching body was submitted.
-                  value: *ref_21
+                  value: *ref_22
                 RULE_TAX_YEAR_NOT_SUPPORTED:
                   description: |
                     The specified tax year is not supported.
@@ -1640,7 +1658,7 @@ paths:
           in: header
           description: |
             An OAuth 2.0 Bearer Token with the *read:self-assessment* scope.
-          schema: *ref_22
+          schema: *ref_23
           required: true
         - name: Gov-Test-Scenario
           in: header
@@ -1880,7 +1898,7 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: *ref_23
+                  value: *ref_24
     delete:
       security:
         - User-Restricted:
@@ -2117,7 +2135,7 @@ paths:
               examples:
                 MATCHING_RESOURCE_NOT_FOUND:
                   description: The matching resource was not found.
-                  value: *ref_23
+                  value: *ref_24
 components:
   securitySchemes:
     User-Restricted:
