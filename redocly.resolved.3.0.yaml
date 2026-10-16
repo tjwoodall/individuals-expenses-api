@@ -353,10 +353,10 @@ paths:
                     code: RULE_TAX_YEAR_RANGE_INVALID
                     message: Tax year range invalid. A tax year range of one year is required
                 RULE_TAX_YEAR_NOT_ENDED:
-                  description: The submission has been made before the Tax year it relates to has ended.
+                  description: The submission has been made before the tax year it relates to has ended.
                   value: &ref_19
                     code: RULE_TAX_YEAR_NOT_ENDED
-                    message: Tax year not ended
+                    message: The specified tax year has not yet ended
                 RULE_INVALID_SUBMISSION_PENSION_SCHEME:
                   description: |
                     Customer with single employment source that has "occupational pension" indicator cannot submit employment expenses.
@@ -1250,7 +1250,7 @@ paths:
                     or it is after the maximum tax year value.
                   value: *ref_12
                 RULE_TAX_YEAR_NOT_ENDED:
-                  description: The submission has been made before the Tax year it relates to has ended.
+                  description: The submission has been made before the tax year it relates to has ended.
                   value: *ref_19
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: |
