@@ -230,11 +230,11 @@ paths:
                     message: The tax year specified does not lie within the supported
                       range
                 RULE_TAX_YEAR_NOT_ENDED:
-                  description: The submission has been made before the Tax year it
+                  description: The submission has been made before the tax year it
                     relates to has ended.
                   value:
                     code: RULE_TAX_YEAR_NOT_ENDED
-                    message: Tax year not ended
+                    message: The specified tax year has not yet ended
                 RULE_INCORRECT_GOV_TEST_SCENARIO:
                   description: "The request did not match any available Sandbox data.\
                     \ Check that the supplied Gov-Test-Scenario is correct for \n\
@@ -472,11 +472,11 @@ components:
         code: RULE_TAX_YEAR_NOT_SUPPORTED
         message: The tax year specified does not lie within the supported range
     ruleTaxYearNotEnded:
-      description: The submission has been made before the Tax year it relates to
+      description: The submission has been made before the tax year it relates to
         has ended.
       value:
         code: RULE_TAX_YEAR_NOT_ENDED
-        message: Tax year not ended
+        message: The specified tax year has not yet ended
     ruleIncorrectGovTestScenario:
       description: "The request did not match any available Sandbox data. Check that\
         \ the supplied Gov-Test-Scenario is correct for \nthis endpoint version. This\
